@@ -633,3 +633,18 @@ ul, ol { list-style: none; }
   .reveal { opacity: 1; transform: none; }
 }
 .map-card .btn { align-self: flex-start; }
+
+.browser.live { cursor: default; }
+.stage:has(.live):hover .browser { transform: none; }
+.live-tag { position: absolute; left: 14px; bottom: 30px; font: 500 12px var(--mono); color: var(--fg-2); }
+.live-tag::first-letter { color: #2fbf71; }
+
+.tara-look { transform: translate(var(--lx, 0), var(--ly, 0)); transition: transform 0.18s ease-out; }
+.chat-head .chat-x:disabled { opacity: 0.3; cursor: default; }
+.chat-head .chat-x:first-of-type { margin-left: auto; }
+.chat-head .chat-x + .chat-x { margin-left: 0; }
+.chat-form button.stop { background: var(--rust); color: #fff; font-size: 13px; animation: ping 1.6s infinite; }
+.chat-note kbd { font: 10px var(--mono); padding: 1px 5px; border-radius: 5px; border: 1px solid var(--line); background: var(--surface); }
+.chat-suggest button { animation: msgIn 0.4s var(--spring) both; }
+.chat-suggest button:nth-child(2) { animation-delay: 0.06s; }
+.chat-suggest button:nth-child(3) { animation-delay: 0.12s; }

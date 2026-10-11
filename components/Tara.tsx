@@ -9,7 +9,16 @@ import Markdown from "react-markdown";
 
 type Msg = { role: "user" | "assistant"; content: string; actions?: Action[]; steps?: string[]; live?: boolean };
 
-const SUGGEST = ["Why should I hire Tahmina?", "Show me her best AI project", "Make it night ✦", "Make Tara dance", "How can I contact her?"];
+const SUGGEST = ["Why should I hire Tahmina?", "Give me the tour ✦", "Show me her best AI project", "Has she used Playwright?", "Make it night ✦", "How can I contact her?"];
+const TOUR = [
+  ["work", "Eight case studies — each one from first sketch to shipped code."],
+  ["about", "Five hats: product, UI/UX, frontend, QA and AI-native."],
+  ["process", "Her process — frame, design the behaviour, build, then try to break it."],
+  ["playground", "The fun bit: motion experiments and the studio critters."],
+  ["contact", "And here’s how to reach her. WhatsApp is quickest! ✦"],
+] as const;
+type Tip = { text: string; prompt?: string };
+const STORE = "tara-chat";
 const GREETING: Msg = {
   role: "assistant",
   content: "Hi, I’m Tara ✦ — Tahmina’s little helper. Ask me about her work, skills or how to reach her. I can also move things around the page!",
@@ -20,14 +29,30 @@ export default function Tara() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const [mood, setMood] = useState<string>("idle");
-  const [bubble, setBubble] = useState(false);
-  const [msgs, setMsgs] = useState<Msg[]>([GREETING]);
+  const [tip, setTip] = useState<Tip | null>(null);
+  const [everOpened, setEverOpened] = useState(false);
+  const [msgs, setMsgs] = useState<Msg[]>(() => {
+    if (typeof window === "undefined") return [GREETING];
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(STORE) ?? "null") as Msg[] | null;
+      if (Array.isArray(saved) && saved.length) return saved.map((m) => ({ ...m, live: false }));
+    } catch {}
+    return [GREETING];
+  });
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const moodTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const tourRef = useRef(0);
+  const project = projects.find((p) => path === `/work/${p.slug}`);
+  const show = useCallback((v: boolean) => {
+    setOpen(v);
+    if (v) { setEverOpened(true); setTip(null); tourRef.current++; }
+  }, []);
 
   // restore theme
   useEffect(() => {
@@ -35,13 +60,37 @@ export default function Tara() {
       const theme = localStorage.getItem("theme");
       if (theme === "night" || theme === "day") document.documentElement.dataset.theme = theme;
     } catch {}
-    const t = setTimeout(() => setBubble(true), 2600);
-    const u = setTimeout(() => setBubble(false), 9000);
-    return () => (clearTimeout(t), clearTimeout(u));
   }, []);
+  // a page-aware nudge, a few seconds after arriving
+  useEffect(() => {
+    const p = projects.find((x) => path === `/work/${x.slug}`);
+    const t = setTimeout(() => setTip(p ? { text: `Want the 30-second version of ${p.name}?`, prompt: `Give me the 30-second version of ${p.name}.` } : { text: "Hi! I’m Tara ✦ ask me about Tahmina" }), p ? 4000 : 2600);
+    const u = setTimeout(() => setTip(null), p ? 12000 : 9000);
+    return () => (clearTimeout(t), clearTimeout(u));
+  }, [path]);
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+    try { sessionStorage.setItem(STORE, JSON.stringify(msgs.filter((m) => !m.live).slice(-20))); } catch {}
   }, [msgs, busy]);
+  // eyes follow the cursor
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce), (pointer: coarse)").matches) return;
+    let raf = 0;
+    const on = (e: PointerEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = wrapRef.current?.querySelector(".tara");
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+        const k = Math.min(1, Math.hypot(dx, dy) / 300) * 3.6 / (Math.hypot(dx, dy) || 1);
+        wrapRef.current!.style.setProperty("--lx", `${dx * k}px`);
+        wrapRef.current!.style.setProperty("--ly", `${dy * k}px`);
+      });
+    };
+    window.addEventListener("pointermove", on);
+    return () => (window.removeEventListener("pointermove", on), cancelAnimationFrame(raf));
+  }, []);
   useEffect(() => {
     if (!cooldown) return;
     const t = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
@@ -49,22 +98,24 @@ export default function Tara() {
   }, [cooldown]);
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 250);
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setOpen(false); tourRef.current++; }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); show(!open); }
+    };
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
-  }, [open]);
+  }, [open, show]);
 
   const sendRef = useRef<(t: string) => void>(() => {});
   useEffect(() => {
     const on = (e: Event) => {
-      setOpen(true);
-      setBubble(false);
+      show(true);
       const q = (e as CustomEvent<string | undefined>).detail;
       if (q) setTimeout(() => sendRef.current(q), 350);
     };
     window.addEventListener("tara:open", on);
     return () => window.removeEventListener("tara:open", on);
-  }, []);
+  }, [show]);
 
   const feel = useCallback((m: string, ms = 2800) => {
     setMood(m);
@@ -72,9 +123,35 @@ export default function Tara() {
     moodTimer.current = setTimeout(() => setMood("idle"), ms);
   }, []);
 
+  const tour = useCallback(async () => {
+    const id = ++tourRef.current;
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    await wait(1400); // let the visitor read the reply first
+    if (id !== tourRef.current) return;
+    setOpen(false);
+    if (path !== "/") { router.push("/"); await wait(900); }
+    // the visitor takes over (scroll, tap, key) → tour stops
+    const stop = () => { tourRef.current++; setTip(null); };
+    const opts = { once: true, passive: true } as const;
+    setTimeout(() => ["wheel", "touchstart", "keydown"].forEach((ev) => window.addEventListener(ev, stop, opts)), 300);
+    for (const [section, text] of TOUR) {
+      if (id !== tourRef.current) return;
+      document.getElementById(section)?.scrollIntoView({ behavior: "smooth" });
+      setTip({ text });
+      feel("wave", 1200);
+      await wait(3200);
+    }
+    if (id !== tourRef.current) return;
+    feel("dance", 2600);
+    burst("stars");
+    setTip({ text: "That’s the tour! Ask me anything ✦" });
+    setTimeout(() => setTip(null), 4000);
+  }, [feel, path, router]);
+
   const run = useCallback(
     (actions: Action[] = []) => {
       for (const a of actions) {
+        if (a.type === "tour") tour();
         if (a.type === "mascot") feel(a.mood, a.mood === "sleep" ? 5000 : 2800);
         if (a.type === "theme") {
           document.documentElement.dataset.theme = a.value;
@@ -98,7 +175,7 @@ export default function Tara() {
         }
       }
     },
-    [feel, path, router],
+    [feel, path, router, tour],
   );
 
   async function send(text: string) {
@@ -111,11 +188,13 @@ export default function Tara() {
     feel("think", 60_000);
     const patch = (f: (m: Msg) => Msg) => setMsgs((all) => [...all.slice(0, -1), f(all[all.length - 1])]);
     let acted = false;
+    const ctrl = (abortRef.current = new AbortController());
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
+        signal: ctrl.signal,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history.map(({ role, content }) => ({ role, content })).slice(-10) }),
+        body: JSON.stringify({ page: path, messages: history.map(({ role, content }) => ({ role, content })).slice(-10) }),
       });
       if (res.status === 429) setCooldown(Number(res.headers.get("Retry-After") ?? 20));
       if (!res.body || !(res.headers.get("content-type") ?? "").includes("ndjson")) throw new Error("bad response");
@@ -141,8 +220,10 @@ export default function Tara() {
         }
       }
     } catch {
-      patch((m) => ({ ...m, content: m.content || "I couldn’t reach my star brain. Check your connection, or WhatsApp Tahmina directly.", actions: m.content ? m.actions : [{ type: "contact", channel: "whatsapp" }] }));
+      if (ctrl.signal.aborted) patch((m) => ({ ...m, content: (m.content ? m.content + " " : "") + "_— stopped._" }));
+      else patch((m) => ({ ...m, content: m.content || "I couldn’t reach my star brain. Check your connection, or WhatsApp Tahmina directly.", actions: m.content ? m.actions : [{ type: "contact", channel: "whatsapp" }] }));
     } finally {
+      abortRef.current = null;
       patch((m) => ({ ...m, live: false }));
       setBusy(false);
       setMood((m) => (m === "think" || m === "talk" ? "idle" : m));
@@ -153,15 +234,19 @@ export default function Tara() {
 
   useEffect(() => { sendRef.current = send; });
 
+  const last = msgs[msgs.length - 1];
+  const followups = everOpened && last?.role === "assistant" && !last.live ? last.actions?.find((a) => a.type === "followups")?.items : undefined;
+  const suggestions = followups ?? (project ? [`Give me the 30-second version of ${project.name}`, "What was the hardest decision?", "How did she test it?", "Why should I hire Tahmina?"] : SUGGEST);
+
   return (
     <>
-      <div className={`tara-wrap ${open ? "is-open" : ""}`}>
-        {bubble && !open && (
-          <button className="tara-bubble" onClick={() => (setOpen(true), setBubble(false))}>
-            Hi! I’m Tara ✦ ask me about Tahmina
+      <div className={`tara-wrap ${open ? "is-open" : ""}`} ref={wrapRef}>
+        {tip && !open && (
+          <button key={tip.text} className="tara-bubble" onClick={() => { const q = tip.prompt; show(true); if (q) setTimeout(() => sendRef.current(q), 350); }}>
+            {tip.text}
           </button>
         )}
-        <button className={`tara mood-${mood}`} aria-label={open ? "Close Tara" : "Open Tara, the portfolio assistant"} onClick={() => (setOpen((v) => !v), setBubble(false), feel("wave", 1400))}>
+        <button className={`tara mood-${mood}`} aria-label={open ? "Close Tara" : "Open Tara, the portfolio assistant (⌘K)"} aria-expanded={open} onClick={() => (show(!open), feel("wave", 1400))}>
           <TaraSvg />
           <span className="tara-z">z</span>
           <span className="tara-heart">♥</span>
@@ -175,11 +260,12 @@ export default function Tara() {
             <strong>Tara</strong>
             <small>{busy ? "thinking…" : "Tahmina’s portfolio assistant"}</small>
           </div>
+          <button className="chat-x" aria-label="Start over" title="Start over" onClick={() => { abortRef.current?.abort(); setMsgs([GREETING]); }} disabled={!everOpened || msgs.length < 2}>↺</button>
           <button className="chat-x" aria-label="Close" onClick={() => setOpen(false)}>✕</button>
         </header>
 
         <div className="chat-list" ref={listRef} aria-live="polite">
-          {msgs.map((m, i) => (
+          {everOpened && msgs.map((m, i) => (
             <div key={i} className={`msg msg-${m.role} ${m.live ? "is-live" : ""}`}>
               {!!m.steps?.length && (
                 <ul className="steps-mini">{m.steps.map((s, j) => <li key={j}>{s}</li>)}</ul>
@@ -195,7 +281,7 @@ export default function Tara() {
         </div>
 
         <div className="chat-suggest">
-          {SUGGEST.map((s) => (
+          {suggestions.map((s) => (
             <button key={s} onClick={() => send(s)} disabled={busy || !!cooldown}>{s}</button>
           ))}
         </div>
@@ -211,9 +297,13 @@ export default function Tara() {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
             aria-label="Message"
           />
-          <button type="submit" disabled={busy || !!cooldown || !input.trim()} aria-label="Send">↑</button>
+          {busy ? (
+            <button type="button" className="stop" onClick={() => abortRef.current?.abort()} aria-label="Stop">■</button>
+          ) : (
+            <button type="submit" disabled={!!cooldown || !input.trim()} aria-label="Send">↑</button>
+          )}
         </form>
-        <p className="chat-note">AI can be wrong · answers only about Tahmina · {input.length}/600</p>
+        <p className="chat-note">AI can be wrong · only about Tahmina · <kbd>⌘K</kbd> · {input.length}/600</p>
       </section>
     </>
   );
@@ -321,12 +411,12 @@ function TaraSvg() {
       </defs>
       <g className="tara-body">
         <path d="M60 6 C66 34 76 44 112 52 C78 62 70 72 64 112 C58 76 48 66 8 60 C44 50 54 40 60 6 Z" fill="url(#tg)" stroke="#E0952A" strokeWidth="2" strokeLinejoin="round" />
-        <g className="tara-eyes">
+        <g className="tara-eyes"><g className="tara-look">
           <ellipse cx="50" cy="56" rx="4.2" ry="5.6" fill="#141A33" />
           <ellipse cx="70" cy="56" rx="4.2" ry="5.6" fill="#141A33" />
           <circle cx="51.5" cy="54" r="1.4" fill="#fff" />
           <circle cx="71.5" cy="54" r="1.4" fill="#fff" />
-        </g>
+        </g></g>
         <ellipse cx="43" cy="66" rx="5" ry="3" fill="#FF8A80" opacity=".6" />
         <ellipse cx="77" cy="66" rx="5" ry="3" fill="#FF8A80" opacity=".6" />
         <path className="tara-mouth" d="M53 66 Q60 73 67 66" stroke="#141A33" strokeWidth="2.6" fill="none" strokeLinecap="round" />
