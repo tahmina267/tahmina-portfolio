@@ -5,6 +5,7 @@ import AskTara from "@/components/AskTara";
 import { Browser, Phone } from "@/components/Device";
 import HatVisual from "@/components/HatVisual";
 import KovaDashboard from "@/components/kova/KovaDashboard";
+import Playground from "@/components/playground/Playground";
 
 const FEATURED = projects.slice(0, 5);
 const MORE = projects.slice(5);
@@ -68,7 +69,7 @@ export default function Home() {
               {p.slug === "kova" ? (
                 <div className="stage reveal">
                   <Browser url="app.kova.money" className="live"><KovaDashboard compact /></Browser>
-                  <span className="live-tag">● Live prototype — hover the chart</span>
+                  <span className="live-tag">● Live prototype — try the chart</span>
                 </div>
               ) : (
                 <Link href={`/work/${p.slug}`} className="stage reveal" aria-label={`Open ${p.name} case study`}>
@@ -186,15 +187,11 @@ export default function Home() {
           <div>
             <p className="eyebrow reveal">Playground</p>
             <h2 className="h2 reveal">Motion, mischief and things nobody asked for.</h2>
+            <p className="muted reveal play-sub">Six small components from the case studies — all of them work. Go on, poke them.</p>
           </div>
         </div>
-        <div className="wrap play-grid">
-          <div className="play reveal"><div className="play-stage dark"><div className="twinkle" /></div><strong>Starfield twinkle</strong><small>1.6 s · ease-in-out · loop</small></div>
-          <div className="play reveal"><div className="play-stage"><div className="orbit"><i /><i /><i /></div></div><strong>Orbit loader</strong><small>“Agent is thinking”</small></div>
-          <div className="play reveal"><div className="play-stage"><div className="typing"><i /><i /><i /></div></div><strong>AI typing</strong><small>0.32 s · spring</small></div>
-          <div className="play reveal"><div className="play-stage"><button className="hold" type="button"><span /> Hold to send</button></div><strong>Hold to confirm</strong><small>press and hold · 1.2 s</small></div>
-          <div className="play reveal"><div className="play-stage"><label className="toggle"><input type="checkbox" defaultChecked /><span /></label></div><strong>Toggle</strong><small>0.45 s · spring</small></div>
-          <div className="play reveal"><div className="play-stage"><div className="floaty">✦</div></div><strong>Floating card</strong><small>2.2 s · ease-in-out</small></div>
+        <div className="wrap">
+          <Playground />
         </div>
         <div className="wrap critters">
           <div className="critter reveal"><Image src="/art/kitten.webp" alt="Patchwork kitten" width={300} height={400} /><div><h4>Patch</h4><p>Checks every colour token against WCAG. Has never approved #FF0000.</p></div></div>

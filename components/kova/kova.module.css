@@ -1,4 +1,4 @@
-.outer { width: 100%; overflow: hidden; background: #f4f3ef; }
+.outer { width: 100%; min-width: 0; contain: inline-size; overflow: hidden; background: #f4f3ef; }
 .app {
   --ink: #111318; --sub: #6b6e78; --line: #e7e5df; --card: #fff; --green: #2f9e5b; --rust: #d0532c; --violet: #6b5cff;
   display: flex; font-family: var(--font-sans), system-ui, sans-serif; color: var(--ink); background: #f4f3ef;

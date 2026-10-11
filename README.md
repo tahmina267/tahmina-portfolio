@@ -25,6 +25,10 @@ npm run check                # guardrail self-check
 
 The Kova case study's dashboard is a real React component (`components/kova`): a balance chart with 7D/30D/90D ranges, hover and keyboard inspection, payroll and invoice event markers, a 14-day forecast with the projected low, sparklines per currency account, an animated cash-flow chart, and a working "Hold Priya & send 41" approval.
 
+## Playground
+
+Six working components from the case studies (`components/playground`): a canvas constellation you draw by clicking stars, an agent run that stops at an approval gate, a streaming reply with tone switching, a hold-to-confirm button (pointer and keyboard), a day/night switch that themes the whole site, and a tilting, flipping Kova card.
+
 ## Deploy (Vercel)
 
 Set `GLM_API_KEY`, `GLM_BASE_URL`, `GLM_MODEL` and `GLM_FALLBACK_MODEL` in the project's environment variables, then deploy. Security headers (CSP, HSTS, nosniff, Permissions-Policy) are set in `next.config.ts`.
