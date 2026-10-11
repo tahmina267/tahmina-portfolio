@@ -1,4 +1,4 @@
-import { projects } from "./content.ts";
+import { disciplines, process, projects, tools } from "./content.ts";
 
 // Guardrails for the portfolio assistant: rate limiting, input checks, output validation.
 
@@ -75,7 +75,9 @@ export type Action =
   | { type: "card"; project: string }
   | { type: "contact"; channel: (typeof CHANNELS)[number] }
   | { type: "skills" }
-  | { type: "map" };
+  | { type: "map" }
+  | { type: "tour" }
+  | { type: "followups"; items: string[] };
 
 const fn = (name: string, description: string, properties: Record<string, object> = {}) => ({
   type: "function",
@@ -94,6 +96,11 @@ export const TOOLS = [
   fn("set_theme", "Switch the site between day and night sky.", { value: { type: "string", enum: ["day", "night"] } }),
   fn("mascot_mood", "Make Tara (you) animate.", { mood: { type: "string", enum: MOODS } }),
   fn("effect", "Play a celebratory visual effect over the page.", { kind: { type: "string", enum: EFFECTS } }),
+  fn("search_portfolio", "Keyword search across every case study, skill, tool and process step. Returns matching snippets.", { query: { type: "string" } }),
+  fn("start_tour", "Give the visitor a guided scroll tour of the whole site (work, about, process, playground, contact)."),
+  fn("suggest_followups", "Offer 2-3 short follow-up questions as tappable chips. Call at the end of every answer.", {
+    questions: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 3 },
+  }),
 ];
 
 const has = <T extends string>(list: readonly T[], v: unknown): v is T => (list as readonly unknown[]).includes(v);
@@ -109,6 +116,45 @@ export function toolToAction(name: string, a: Record<string, unknown>): Action |
     case "set_theme": return a.value === "day" || a.value === "night" ? { type: "theme", value: a.value } : null;
     case "mascot_mood": return has(MOODS, a.mood) ? { type: "mascot", mood: a.mood } : null;
     case "effect": return has(EFFECTS, a.kind) ? { type: "effect", value: a.kind } : null;
+    case "start_tour": return { type: "tour" };
+    case "suggest_followups": {
+      if (!Array.isArray(a.questions)) return null;
+      const items = a.questions
+        .filter((q): q is string => typeof q === "string")
+        .map((q) => q.replace(/[\u0000-\u001F<>]/g, "").replace(/https?:\/\/\S+/g, "").trim().slice(0, 70))
+        .filter((q) => q.length > 3)
+        .slice(0, 3);
+      return items.length ? { type: "followups", items } : null;
+    }
     default: return null;
   }
+}
+
+// Pages the assistant may be told the visitor is on. Anything else → home.
+export function cleanPage(page: unknown): string {
+  return typeof page === "string" && (page === "/" || SLUGS.some((s) => page === `/work/${s}`)) ? page : "/";
+}
+
+// Tiny keyword search over everything true about Tahmina. ponytail: substring scoring, swap for embeddings if content grows.
+const DOCS = [
+  ...projects.flatMap((p) => [
+    { src: p.name, text: `${p.name}: ${p.summary} ${p.problem}` },
+    ...p.decisions.map((d) => ({ src: p.name, text: `${d.title} — ${d.body}` })),
+    ...(p.ai ? [{ src: p.name, text: `AI rules: ${p.ai.prompt.slice(2).join(" ")}` }] : []),
+    { src: p.name, text: `QA: ${p.qa.matrix.map((m) => m.case).join("; ")}. Edge cases: ${p.qa.edgeCases.join("; ")}` },
+    { src: p.name, text: `Code (${p.code.file}): ${p.code.lines.join(" ")}` },
+  ]),
+  ...disciplines.map((d) => ({ src: `${d.name} skills`, text: `${d.line} ${d.skills.join(", ")}` })),
+  ...process.map((s) => ({ src: "Process", text: `${s.title}: ${s.body}` })),
+  { src: "Tools", text: tools.join(", ") },
+];
+export function searchPortfolio(query: string) {
+  const words = query.toLowerCase().split(/[^a-z0-9+#.]+/).filter((w) => w.length > 1);
+  if (!words.length) return { results: [] };
+  const results = DOCS.map((d) => ({ ...d, score: words.filter((w) => d.text.toLowerCase().includes(w)).length }))
+    .filter((d) => d.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+    .map(({ src, text }) => ({ source: src, snippet: text.slice(0, 260) }));
+  return { results };
 }
