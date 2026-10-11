@@ -4,6 +4,7 @@ import { disciplines, process, profile, projects, tools } from "@/lib/content";
 import AskTara from "@/components/AskTara";
 import { Browser, Phone } from "@/components/Device";
 import HatVisual from "@/components/HatVisual";
+import KovaDashboard from "@/components/kova/KovaDashboard";
 
 const FEATURED = projects.slice(0, 5);
 const MORE = projects.slice(5);
@@ -64,12 +65,19 @@ export default function Home() {
         {FEATURED.map((p, i) => (
           <article key={p.slug} className={`chapter ${p.dark ? "is-dark" : ""}`} data-project={p.slug} style={{ ["--tint" as string]: p.tint }}>
             <div className={`wrap chapter-grid ${i % 2 ? "flip" : ""}`}>
-              <Link href={`/work/${p.slug}`} className="stage reveal" aria-label={`Open ${p.name} case study`}>
-                <Browser src={`/work/${p.shot}.webp`} url={`${p.slug}.app`} />
-                {p.phones.slice(0, 2).map((ph, j) => (
-                  <Phone key={ph} src={`/work/${ph}.webp`} className={`stage-phone p${j}`} />
-                ))}
-              </Link>
+              {p.slug === "kova" ? (
+                <div className="stage reveal">
+                  <Browser url="app.kova.money" className="live"><KovaDashboard compact /></Browser>
+                  <span className="live-tag">● Live prototype — hover the chart</span>
+                </div>
+              ) : (
+                <Link href={`/work/${p.slug}`} className="stage reveal" aria-label={`Open ${p.name} case study`}>
+                  <Browser src={`/work/${p.shot}.webp`} url={`${p.slug}.app`} />
+                  {p.phones.slice(0, 2).map((ph, j) => (
+                    <Phone key={ph} src={`/work/${ph}.webp`} className={`stage-phone p${j}`} />
+                  ))}
+                </Link>
+              )}
               <div className="chapter-copy reveal">
                 <p className="eyebrow">{String(i + 1).padStart(2, "0")} — {p.sector} · {p.year}</p>
                 <h3 className="h3">{p.name}</h3>

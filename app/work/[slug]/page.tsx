@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { disciplines, profile, projects } from "@/lib/content";
 import AskTara from "@/components/AskTara";
 import { Browser, Phone } from "@/components/Device";
+import KovaDashboard from "@/components/kova/KovaDashboard";
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
@@ -50,7 +51,11 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
       </header>
 
       <section className="wrap cs-stage reveal">
-        <Browser src={`/work/${p.shot}.webp`} url={`${p.slug}.app`} />
+        {p.slug === "kova" ? (
+          <Browser url="app.kova.money" className="live"><KovaDashboard /></Browser>
+        ) : (
+          <Browser src={`/work/${p.shot}.webp`} url={`${p.slug}.app`} />
+        )}
         {p.phones.length > 0 && (
           <div className="cs-phones">{p.phones.map((ph, j) => <Phone key={ph} src={`/work/${ph}.webp`} className={`cs-phone c${j}`} />)}</div>
         )}
