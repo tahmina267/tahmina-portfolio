@@ -28,7 +28,7 @@ export function rateLimit(key: string, now = Date.now()): { ok: boolean; retryAf
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
-export const MAX_MSG = 600;
+export const MAX_MSG = 1500; // room for a pasted job description
 export const MAX_TURNS = 10;
 
 export function cleanMessages(input: unknown): ChatMessage[] | null {
@@ -64,6 +64,10 @@ export const SECTIONS = ["top", "work", "about", "process", "playground", "conta
 export const MOODS = ["wave", "dance", "think", "love", "sleep", "surprised"] as const;
 export const EFFECTS = ["stars", "confetti", "shooting-star"] as const;
 export const CHANNELS = ["whatsapp", "phone", "linkedin"] as const;
+export const SPOTS = ["problem", "decisions", "ai", "code", "qa", "measures", "next", "kova-chart", "kova-accounts", "kova-approvals", "hats", "steps", "playground", "map"] as const;
+export const KOVA_CMDS = ["range_7d", "range_30d", "range_90d", "inspect_low", "hold_priya", "reset"] as const;
+export const DEMOS = ["agent", "stream", "constellation", "flip_card", "daynight"] as const;
+const LEVELS = ["strong", "partial", "gap"] as const;
 const SLUGS = projects.map((p) => p.slug);
 
 export type Action =
@@ -77,7 +81,13 @@ export type Action =
   | { type: "skills" }
   | { type: "map" }
   | { type: "tour" }
-  | { type: "followups"; items: string[] };
+  | { type: "followups"; items: string[] }
+  | { type: "spotlight"; target: (typeof SPOTS)[number]; caption: string }
+  | { type: "kova"; cmd: (typeof KOVA_CMDS)[number] }
+  | { type: "demo"; demo: (typeof DEMOS)[number] }
+  | { type: "compare"; slugs: string[] }
+  | { type: "draft"; channel: "whatsapp" | "linkedin"; text: string }
+  | { type: "fit"; role: string; items: { req: string; evidence: string; project?: string; level: (typeof LEVELS)[number] }[] };
 
 const fn = (name: string, description: string, properties: Record<string, object> = {}) => ({
   type: "function",
@@ -98,6 +108,24 @@ export const TOOLS = [
   fn("effect", "Play a celebratory visual effect over the page.", { kind: { type: "string", enum: EFFECTS } }),
   fn("search_portfolio", "Keyword search across every case study, skill, tool and process step. Returns matching snippets.", { query: { type: "string" } }),
   fn("start_tour", "Give the visitor a guided scroll tour of the whole site (work, about, process, playground, contact)."),
+  fn("spotlight", "Dim the page and point at one part of the CURRENT page with a short caption. Case-study parts: problem, decisions, ai, code, qa, measures, next (navigate to the project first). Kova prototype parts: kova-chart, kova-accounts, kova-approvals (on /work/kova). Home parts: hats, steps, playground, map.", {
+    target: { type: "string", enum: SPOTS },
+    caption: { type: "string", description: "Max 90 characters, what to look at." },
+  }),
+  fn("kova_demo", "Operate the live Kova banking prototype (opens it if needed): switch chart range, jump the cursor to the projected low after payroll, or press 'Hold Priya & send 41'.", { action: { type: "string", enum: KOVA_CMDS } }),
+  fn("play_demo", "Run one of the interactive Playground components on the home page.", { demo: { type: "string", enum: DEMOS } }),
+  fn("compare_projects", "Show a side-by-side comparison card of 2-3 projects.", { slugs: { type: "array", items: slug, minItems: 2, maxItems: 3 } }),
+  fn("draft_message", "Draft a short, polite intro message from the visitor to Tahmina that they can edit and send themselves. Never claim it was sent.", {
+    channel: { type: "string", enum: ["whatsapp", "linkedin"] },
+    text: { type: "string", description: "Max 500 characters. Written in the visitor's voice." },
+  }),
+  fn("show_fit", "When a visitor pastes a job description or names a role: show an honest requirement-by-requirement fit card. Mark anything not evidenced in the portfolio as 'gap'.", {
+    role: { type: "string" },
+    items: {
+      type: "array", minItems: 2, maxItems: 6,
+      items: { type: "object", properties: { req: { type: "string" }, evidence: { type: "string" }, project: slug, level: { type: "string", enum: LEVELS } }, required: ["req", "evidence", "level"] },
+    },
+  }),
   fn("suggest_followups", "Offer 2-3 short follow-up questions as tappable chips. Call at the end of every answer.", {
     questions: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 3 },
   }),
@@ -117,6 +145,28 @@ export function toolToAction(name: string, a: Record<string, unknown>): Action |
     case "mascot_mood": return has(MOODS, a.mood) ? { type: "mascot", mood: a.mood } : null;
     case "effect": return has(EFFECTS, a.kind) ? { type: "effect", value: a.kind } : null;
     case "start_tour": return { type: "tour" };
+    case "spotlight": return has(SPOTS, a.target) ? { type: "spotlight", target: a.target, caption: clean(a.caption, 90) } : null;
+    case "kova_demo": return has(KOVA_CMDS, a.action) ? { type: "kova", cmd: a.action } : null;
+    case "play_demo": return has(DEMOS, a.demo) ? { type: "demo", demo: a.demo } : null;
+    case "compare_projects": {
+      const slugs = Array.isArray(a.slugs) ? [...new Set(a.slugs.filter((x): x is string => has(SLUGS, x)))].slice(0, 3) : [];
+      return slugs.length >= 2 ? { type: "compare", slugs } : null;
+    }
+    case "draft_message": {
+      const text = clean(a.text, 500);
+      return (a.channel === "whatsapp" || a.channel === "linkedin") && text.length > 10 ? { type: "draft", channel: a.channel, text } : null;
+    }
+    case "show_fit": {
+      if (!Array.isArray(a.items)) return null;
+      const items = a.items.slice(0, 6).flatMap((it) => {
+        if (!it || typeof it !== "object") return [];
+        const x = it as Record<string, unknown>;
+        if (!has(LEVELS, x.level)) return [];
+        const req = clean(x.req, 80), evidence = clean(x.evidence, 160);
+        return req ? [{ req, evidence, level: x.level, ...(has(SLUGS, x.project) ? { project: x.project } : {}) }] : [];
+      });
+      return items.length >= 2 ? { type: "fit", role: clean(a.role, 60) || "This role", items } : null;
+    }
     case "suggest_followups": {
       if (!Array.isArray(a.questions)) return null;
       const items = a.questions
@@ -128,6 +178,11 @@ export function toolToAction(name: string, a: Record<string, unknown>): Action |
     }
     default: return null;
   }
+}
+
+// Model text shown in UI: no control chars, no HTML, no links, capped.
+function clean(v: unknown, max: number) {
+  return typeof v === "string" ? v.replace(/[\u0000-\u0008\u000B-\u001F<>]/g, "").replace(/https?:\/\/\S+/g, "").trim().slice(0, max) : "";
 }
 
 // Pages the assistant may be told the visitor is on. Anything else → home.

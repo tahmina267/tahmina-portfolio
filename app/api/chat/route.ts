@@ -1,6 +1,7 @@
 import { knowledge, profile, projects } from "@/lib/content";
 import { cleanMessages, cleanPage, isBlocked, rateLimit, searchPortfolio, toolToAction, type Action } from "@/lib/guard";
 import { complete, hasKey, models, type Call, type Msg } from "@/lib/glm";
+import { APPROVALS, FORECAST, SERIES, day, fmt } from "@/components/kova/data";
 
 export const maxDuration = 60;
 
@@ -20,9 +21,16 @@ RULES
 6. Kind and professional. Never rude, flirty or political.
 7. Be specific: cite the concrete decision, rule or test from a case study rather than generic praise.
 
-TOOLS
-- Facts first: call get_project before describing a project in depth; call search_portfolio for questions like "has she used X?" or "which project shows Y?".
-- Then write your reply, then call UI tools at the end in one go (at most 3): a card when recommending a project, show_contact for contact questions, show_map for location, show_skills for skills, start_tour if they want the tour.
+TOOLS — you can operate this website, not just talk about it. Show, don't tell.
+- Facts first: call get_project before describing a project in depth; call search_portfolio for "has she used X?" / "which project shows Y?".
+- Then write your reply, then call UI tools at the end in one go (at most 4).
+- Show evidence on the page: to show HOW she did something, call navigate AND spotlight together in the same turn — navigate to the project and spotlight the right part (qa for testing, ai for prompts, code for code, decisions for design choices, measures for metrics). Spotlight captions are short and specific.
+- Kova is a live prototype: use kova_demo to operate it (e.g. inspect_low to show the payroll forecast, hold_priya to show the safety pattern), then spotlight kova-chart or kova-approvals.
+- Playground: play_demo runs a component for them (agent = approval-gated agent run, stream = streaming reply, constellation, flip_card, daynight).
+- Comparisons → compare_projects. Recommending one project → show_project_card. Contact → show_contact. Location → show_map. Skills → show_skills. Tour → start_tour.
+- Job descriptions / "is she a fit for X?": search_portfolio for each key requirement, then show_fit with honest levels — anything not evidenced is "gap". Keep the text reply to 2 sentences; the card carries the detail.
+- When the visitor wants to reach out, offer draft_message (short, friendly, in THEIR voice, mention what caught their eye). Don't paste the draft into your reply and don't also call show_contact — the card has the button. They edit and send it themselves — never say it was sent.
+- UI tool results tell you exactly what is now on screen. Describe only that; never guess ranges, dates or values.
 - End EVERY answer by calling suggest_followups with 2–3 short, specific questions the visitor might ask next.`;
 
 const CANNED: Record<string, { text: string; actions: Action[] }> = {
@@ -41,6 +49,38 @@ function projectDetail(slug: string) {
     code_file: p.code.file, measures_designed_for: p.metrics.map((m) => `${m.value} — ${m.label}`), next: p.next, url: `/work/${p.slug}`,
   };
 }
+
+// What a UI action actually put on screen — fed back to the model so it narrates facts, not guesses.
+function describe(a: Action): Record<string, unknown> {
+  switch (a.type) {
+    case "kova": {
+      if (a.cmd === "inspect_low") {
+        const low = FORECAST.reduce((m, p) => (p.v < m.v ? p : m));
+        return { ok: true, on_screen: `Kova chart in 30-day view plus a 14-day forecast. Cursor pinned on ${day(low.t, { weekday: "short", day: "numeric", month: "short" })} (forecast): projected balance ${fmt(low.v, 0)}, the lowest point, right after "${low.ev?.label ?? "payroll"}" (${fmt(low.ev?.amount ?? 0, 0)}). Current balance ${fmt(SERIES[SERIES.length - 1].v, 0)}.` };
+      }
+      if (a.cmd === "hold_priya") return { ok: true, on_screen: `In "Waiting for you", the ${APPROVALS[0].title} (${APPROVALS[0].amount}) now reads "Priya held · 41 ready to send" — one changed recipient held, the other 41 can go.` };
+      const n = { range_7d: 7, range_30d: 30, range_90d: 90, reset: 30 }[a.cmd];
+      const s = SERIES.slice(-n);
+      return { ok: true, on_screen: `Kova chart now shows ${n} days: ${fmt(s[0].v, 0)} → ${fmt(s[s.length - 1].v, 0)}${n > 7 ? ", with a dashed 14-day forecast" : ""}.` };
+    }
+    case "navigate": return { ok: true, on_screen: projects.find((p) => p.slug === a.target) ? `Opened the ${a.target} case-study page.` : `Scrolled to the ${a.target} section.` };
+    case "spotlight": return { ok: true, on_screen: `Page dimmed with "${a.target}" highlighted and your caption shown for 5 seconds.` };
+    case "demo": return { ok: true, on_screen: `The ${a.demo} playground component is now running on the home page.` };
+    case "draft": return { ok: true, on_screen: "An editable draft card with an 'Open in WhatsApp/LinkedIn' button is shown. Do NOT repeat the draft text in your reply." };
+    default: return { ok: true };
+  }
+}
+
+// Visible "what Tara is doing" labels for page-driving actions.
+const STEP_LABEL: Partial<Record<Action["type"], (a: Action) => string>> = {
+  navigate: (a) => `Opening ${a.type === "navigate" ? projects.find((p) => p.slug === a.target)?.name ?? a.target : ""}`,
+  spotlight: (a) => `Pointing at ${a.type === "spotlight" ? a.target.replace("kova-", "Kova ") : ""}`,
+  kova: (a) => `Driving the Kova prototype · ${a.type === "kova" ? a.cmd.replace(/_/g, " ") : ""}`,
+  demo: (a) => `Running the ${a.type === "demo" ? a.demo.replace("_", " ") : ""} demo`,
+  fit: () => "Matching requirements to evidence",
+  compare: () => "Comparing projects",
+  tour: () => "Starting the tour",
+};
 
 // ponytail: per-instance, like the rate limiter. One in-flight answer per visitor.
 const inflight = new Set<string>();
@@ -122,14 +162,22 @@ export async function POST(req: Request) {
               result = searchPortfolio(q);
             } else {
               const action = toolToAction(c.name, args);
-              const limited = action && action.type !== "followups" && uiCount >= 4;
-              if (action && !limited) { if (action.type !== "followups") uiCount++; send({ t: "action", a: action }); }
-              result = action && !limited ? { ok: true } : { ok: false, error: "invalid or too many UI actions" };
+              const limited = action && action.type !== "followups" && uiCount >= 5;
+              if (action && !limited) {
+                if (action.type !== "followups") uiCount++;
+                const label = STEP_LABEL[action.type]?.(action);
+                if (label) send({ t: "step", label });
+                send({ t: "action", a: action });
+              }
+              result = action && !limited ? describe(action) : { ok: false, error: "invalid or too many UI actions" };
             }
             convo.push({ role: "tool", tool_call_id: c.id, content: JSON.stringify(result) });
           }
-          // Text already written and only UI tools ran → nothing new to say; stop instead of letting it repeat itself.
-          if (said && calls.every((c) => c.name !== "get_project" && c.name !== "search_portfolio")) break;
+          // Text already written and only UI tools ran → stop, unless the answer is clearly unfinished
+          // (a one-line "let me show you" with no follow-ups yet) — then give it one more round to finish the job.
+          const dataCall = calls.some((c) => c.name === "get_project" || c.name === "search_portfolio");
+          const finished = calls.some((c) => c.name === "suggest_followups") || said.length > 160;
+          if (said && !dataCall && finished) break;
         }
         if (!wrote) send({ t: "text", d: "Done! ✦" });
       } catch {
