@@ -148,9 +148,52 @@ export default function Tara() {
     setTimeout(() => setTip(null), 4000);
   }, [feel, path, router]);
 
+  // Page-driving actions run in order: navigate → wait for the page → spotlight / operate.
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const ensure = useCallback(async (sel: string, href: string) => {
+    let el = document.querySelector(sel);
+    if (!el) { router.push(href); el = await waitFor(sel); }
+    return el;
+  }, [router]);
+  const drive = useCallback((a: Action) => {
+    queue.current = queue.current.then(async () => {
+      if (a.type === "navigate") {
+        const p = projects.find((x) => x.slug === a.target);
+        if (p) { router.push(`/work/${p.slug}`); await waitFor(`[data-page="${p.slug}"]`); window.scrollTo({ top: 0 }); }
+        else if (path !== "/") { router.push(`/#${a.target}`); await waitFor(`#${a.target}`); }
+        else document.getElementById(a.target)?.scrollIntoView({ behavior: "smooth" });
+        await sleep(500);
+      }
+      if (a.type === "spotlight") {
+        const kova = a.target.startsWith("kova-");
+        const home = ["hats", "steps", "playground", "map"].includes(a.target);
+        const el = await ensure(`[data-spot="${a.target}"]`, kova ? "/work/kova" : home ? "/" : path);
+        if (el) { if (window.innerWidth < 760) setOpen(false); await spotlight(el, a.caption); }
+      }
+      if (a.type === "kova") {
+        const sel = a.cmd === "hold_priya" ? '[data-spot="kova-approvals"]' : '[data-spot="kova-chart"]';
+        const el = await ensure(sel, "/work/kova");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        await sleep(700);
+        window.dispatchEvent(new CustomEvent("kova:cmd", { detail: a.cmd }));
+        await sleep(900);
+      }
+      if (a.type === "demo") {
+        const el = await ensure(`[data-demo="${a.demo}"]`, "/#playground");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        await sleep(700);
+        window.dispatchEvent(new CustomEvent("pg:cmd", { detail: a.demo }));
+        el?.classList.add("glow-tile");
+        setTimeout(() => el?.classList.remove("glow-tile"), 2400);
+        await sleep(600);
+      }
+    }).catch(() => {});
+  }, [ensure, path, router]);
+
   const run = useCallback(
     (actions: Action[] = []) => {
       for (const a of actions) {
+        if (a.type === "navigate" || a.type === "spotlight" || a.type === "kova" || a.type === "demo") { drive(a); continue; }
         if (a.type === "tour") tour();
         if (a.type === "mascot") feel(a.mood, a.mood === "sleep" ? 5000 : 2800);
         if (a.type === "theme") {
@@ -158,11 +201,6 @@ export default function Tara() {
           try { localStorage.setItem("theme", a.value); } catch {}
         }
         if (a.type === "effect") burst(a.value);
-        if (a.type === "navigate") {
-          if (projects.some((p) => p.slug === a.target)) router.push(`/work/${a.target}`);
-          else if (path !== "/") router.push(`/#${a.target}`);
-          else document.getElementById(a.target)?.scrollIntoView({ behavior: "smooth" });
-        }
         if (a.type === "highlight") {
           const go = () => {
             const el = document.querySelector(`[data-project="${a.project}"]`);
@@ -175,11 +213,11 @@ export default function Tara() {
         }
       }
     },
-    [feel, path, router, tour],
+    [drive, feel, path, router, tour],
   );
 
   async function send(text: string) {
-    const content = text.trim().slice(0, 600);
+    const content = text.trim().slice(0, 1500);
     if (!content || busy || cooldown) return;
     const history = [...msgs.filter((m) => m !== GREETING && m.content), { role: "user" as const, content }];
     setMsgs((m) => [...m, { role: "user", content }, { role: "assistant", content: "", actions: [], steps: [], live: true }]);
@@ -290,7 +328,7 @@ export default function Tara() {
           <textarea
             ref={inputRef}
             value={input}
-            maxLength={600}
+            maxLength={1500}
             rows={1}
             placeholder={cooldown ? `One moment… ${cooldown}s` : "Ask about Tahmina’s work…"}
             onChange={(e) => setInput(e.target.value)}
@@ -303,7 +341,7 @@ export default function Tara() {
             <button type="submit" disabled={!!cooldown || !input.trim()} aria-label="Send">↑</button>
           )}
         </form>
-        <p className="chat-note">AI can be wrong · only about Tahmina · <kbd>⌘K</kbd> · {input.length}/600</p>
+        <p className="chat-note">AI can be wrong · only about Tahmina · <kbd>⌘K</kbd> · {input.length}/1500</p>
       </section>
     </>
   );
@@ -341,6 +379,9 @@ function ActionView({ a }: { a: Action }) {
       </div>
     );
   }
+  if (a.type === "compare") return <CompareCard slugs={a.slugs} />;
+  if (a.type === "fit") return <FitCard role={a.role} items={a.items} />;
+  if (a.type === "draft") return <DraftCard channel={a.channel} text={a.text} />;
   if (a.type === "map") {
     return (
       <figure className="chat-map">
@@ -356,6 +397,112 @@ function ActionView({ a }: { a: Action }) {
     );
   }
   return null;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+async function waitFor(sel: string, ms = 4000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const el = document.querySelector(sel);
+    if (el) return el;
+    await sleep(100);
+  }
+  return null;
+}
+
+/** Dim the page, cut a glowing hole around `el`, show a caption. Click or 5 s to dismiss. */
+async function spotlight(el: Element, caption: string) {
+  document.querySelector(".spot")?.remove();
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  await sleep(650);
+  const chat = document.querySelector(".chat.is-open");
+  chat?.classList.add("peek"); // slide the chat aside so it never covers what we point at
+  const hole = document.createElement("div");
+  hole.className = "spot";
+  const cap = document.createElement("div");
+  cap.className = "spot-cap";
+  cap.textContent = caption || "Look here ✦";
+  hole.appendChild(cap);
+  document.body.appendChild(hole);
+  let raf = 0;
+  const place = () => {
+    const r = el.getBoundingClientRect(), pad = 10;
+    Object.assign(hole.style, { left: `${r.left - pad}px`, top: `${r.top - pad}px`, width: `${r.width + pad * 2}px`, height: `${r.height + pad * 2}px` });
+    cap.dataset.below = r.top < 120 ? "1" : "";
+    raf = requestAnimationFrame(place);
+  };
+  place();
+  await new Promise<void>((done) => {
+    const end = () => { cancelAnimationFrame(raf); hole.classList.add("out"); chat?.classList.remove("peek"); setTimeout(() => hole.remove(), 350); window.removeEventListener("pointerdown", end); done(); };
+    setTimeout(end, 5200);
+    setTimeout(() => window.addEventListener("pointerdown", end), 300);
+  });
+}
+
+function CompareCard({ slugs }: { slugs: string[] }) {
+  const ps = slugs.map((s) => projects.find((p) => p.slug === s)!).filter(Boolean);
+  const rows: [string, (p: (typeof projects)[number]) => React.ReactNode][] = [
+    ["Sector", (p) => p.sector],
+    ["Year", (p) => p.year],
+    ["Hats", (p) => <span className="dots-mini">{p.disciplines.map((d) => <i key={d} title={d} style={{ background: disciplines.find((x) => x.name === d)?.color }} />)}</span>],
+    ["AI rules", (p) => (p.ai ? `${p.ai.prompt.length - 2} rules` : "—")],
+    ["QA cases", (p) => `${p.qa.matrix.length} × ${p.qa.cols.length} matrix`],
+    ["Big call", (p) => p.decisions[0].title],
+  ];
+  return (
+    <div className="cmp" style={{ ["--n" as string]: ps.length }}>
+      <div className="cmp-row cmp-head"><span />{ps.map((p) => <Link key={p.slug} href={`/work/${p.slug}`} style={{ ["--tint" as string]: p.tint }}>{p.name}</Link>)}</div>
+      {rows.map(([label, f]) => (
+        <div key={label} className="cmp-row"><span>{label}</span>{ps.map((p) => <div key={p.slug}>{f(p)}</div>)}</div>
+      ))}
+    </div>
+  );
+}
+
+function FitCard({ role, items }: { role: string; items: { req: string; evidence: string; project?: string; level: "strong" | "partial" | "gap" }[] }) {
+  const score = items.reduce((n, i) => n + (i.level === "strong" ? 1 : i.level === "partial" ? 0.5 : 0), 0) / items.length;
+  return (
+    <div className="fit">
+      <div className="fit-head">
+        <div><small>Fit check</small><strong>{role}</strong></div>
+        <svg viewBox="0 0 36 36" className="fit-ring" aria-label={`${Math.round(score * 100)}% evidenced`}>
+          <circle cx="18" cy="18" r="15" />
+          <circle cx="18" cy="18" r="15" pathLength={1} style={{ strokeDashoffset: 1 - score }} className="on" />
+          <text x="18" y="21" textAnchor="middle">{Math.round(score * 100)}%</text>
+        </svg>
+      </div>
+      <ul>
+        {items.map((i, k) => (
+          <li key={k} className={`lv-${i.level}`} style={{ animationDelay: `${k * 90}ms` }}>
+            <b>{i.req}</b>
+            <span>{i.evidence || (i.level === "gap" ? "Not shown in the portfolio — worth asking her." : "")}</span>
+            <em>{i.level}{i.project && <> · <Link href={`/work/${i.project}`}>{projects.find((p) => p.slug === i.project)?.name} →</Link></>}</em>
+          </li>
+        ))}
+      </ul>
+      <small className="fit-note">Based only on what’s in this portfolio.</small>
+    </div>
+  );
+}
+
+function DraftCard({ channel, text }: { channel: "whatsapp" | "linkedin"; text: string }) {
+  const [body, setBody] = useState(text);
+  const [copied, setCopied] = useState(false);
+  const copy = async () => { try { await navigator.clipboard.writeText(body); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch {} };
+  return (
+    <div className="draft">
+      <small>Draft · edit before sending</small>
+      <textarea value={body} onChange={(e) => setBody(e.target.value.slice(0, 600))} rows={4} aria-label="Message draft" />
+      <div className="draft-row">
+        {channel === "whatsapp" ? (
+          <a className="chat-btn" href={`${profile.whatsappHref}?text=${encodeURIComponent(body)}`} target="_blank" rel="noreferrer">Open in WhatsApp ↗</a>
+        ) : (
+          <a className="chat-btn" href={profile.linkedin} target="_blank" rel="noreferrer" onClick={copy}>Copy & open LinkedIn ↗</a>
+        )}
+        <button onClick={copy}>{copied ? "Copied ✓" : "Copy"}</button>
+      </div>
+    </div>
+  );
 }
 
 // Safe markdown: no raw HTML, a small element allowlist, and links only to this site or her own profiles.

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import s from "./kova.module.css";
+import { useCmd } from "@/lib/useCmd";
 import { ACCOUNTS, APPROVALS, BALANCE, CASHFLOW, FORECAST, SERIES, day, fmt, fmtShort } from "./data";
 
 const RANGES = { "7D": 7, "30D": 30, "90D": 90 } as const;
@@ -157,6 +158,17 @@ function BalanceCard({ seen }: { seen: boolean }) {
   const hp = all[h];
   const prev = all[h - 1] ?? SERIES[SERIES.length - RANGES[range] - 1];
 
+  // Tara can drive this chart
+  useCmd("kova:cmd", (cmd) => {
+    const r = ({ range_7d: "7D", range_30d: "30D", reset: "30D", range_90d: "90D" } as const)[cmd as "reset"];
+    if (r) { setRange(r); setHover(null); }
+    if (cmd === "inspect_low") {
+      setRange("30D");
+      const i = FORECAST.reduce((b, p, j) => (p.v < FORECAST[b].v ? j : b), 0);
+      setHover(RANGES["30D"] + i);
+    }
+  });
+
   const pick = (clientX: number, el: Element) => {
     const r = el.getBoundingClientRect();
     const x = ((clientX - r.left) / r.width) * W;
@@ -164,7 +176,7 @@ function BalanceCard({ seen }: { seen: boolean }) {
   };
 
   return (
-    <section className={`${s.card} ${s.balance}`}>
+    <section className={`${s.card} ${s.balance}`} data-spot="kova-chart">
       <div className={s.balTop}>
         <div>
           <small className={s.cap}>Total balance · USD equivalent</small>
@@ -264,7 +276,7 @@ function Spark({ v, color }: { v: number[]; color: string }) {
 function Accounts({ seen }: { seen: boolean }) {
   const [active, setActive] = useState<string | null>(null);
   return (
-    <section className={`${s.card} ${s.accounts}`}>
+    <section className={`${s.card} ${s.accounts}`} data-spot="kova-accounts">
       <div className={s.accHead}>
         <small className={s.cap}>Accounts</small>
         <small className={s.cap}>5 currencies</small>
@@ -336,8 +348,12 @@ function CashFlow({ seen }: { seen: boolean }) {
 
 function Approvals() {
   const [held, setHeld] = useState(false);
+  useCmd("kova:cmd", (cmd) => {
+    if (cmd === "hold_priya") setHeld(true);
+    if (cmd === "reset") setHeld(false);
+  });
   return (
-    <section className={`${s.card} ${s.appr}`}>
+    <section className={`${s.card} ${s.appr}`} data-spot="kova-approvals">
       <div className={s.accHead}>
         <small className={s.cap}>Waiting for you</small>
         <small className={s.cap}>{APPROVALS.length}</small>

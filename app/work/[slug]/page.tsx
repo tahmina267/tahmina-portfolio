@@ -29,7 +29,7 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
   const color = (d: string) => disciplines.find((x) => x.name === d)?.color;
 
   return (
-    <article className="cs" style={{ ["--tint" as string]: p.tint }}>
+    <article className="cs" data-page={p.slug} style={{ ["--tint" as string]: p.tint }}>
       <header className={`cs-hero ${p.dark ? "is-dark" : ""}`}>
         <div className="stars" aria-hidden />
         <div className="wrap cs-hero-grid">
@@ -61,12 +61,12 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
         )}
       </section>
 
-      <section className="wrap cs-block">
+      <section className="wrap cs-block" data-spot="problem">
         <p className="cs-label reveal"><span>01</span> The problem</p>
         <p className="cs-big reveal">{p.problem}</p>
       </section>
 
-      <section className="wrap cs-block">
+      <section className="wrap cs-block" data-spot="decisions">
         <p className="cs-label reveal"><span>02</span> Key decisions</p>
         <div className="decisions">
           {p.decisions.map((d, j) => (
@@ -79,7 +79,7 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
       </section>
 
       {p.ai && (
-        <section className="wrap cs-block">
+        <section className="wrap cs-block" data-spot="ai">
           <p className="cs-label reveal"><span>03</span> Designing the model’s behaviour</p>
           <div className="code-card reveal ai">
             <div className="code-bar"><i /><i /><i /><span>{p.ai.file}</span></div>
@@ -89,14 +89,14 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
       )}
 
       <section className="wrap cs-block cs-two">
-        <div>
+        <div data-spot="code">
           <p className="cs-label reveal"><span>{p.ai ? "04" : "03"}</span> Built in code</p>
           <div className="code-card reveal">
             <div className="code-bar"><i /><i /><i /><span>{p.code.file}</span></div>
             <pre>{p.code.lines.map((l, j) => <code key={j}><b>{String(j + 1).padStart(2, " ")}</b>{l}{"\n"}</code>)}</pre>
           </div>
         </div>
-        <div>
+        <div data-spot="qa">
           <p className="cs-label reveal"><span>{p.ai ? "05" : "04"}</span> Then I tried to break it</p>
           <div className="matrix reveal">
             <div className="matrix-row head"><span>Case</span>{p.qa.cols.map((c) => <span key={c}>{c}</span>)}</div>
@@ -111,7 +111,7 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
         </div>
       </section>
 
-      <section className="wrap cs-block">
+      <section className="wrap cs-block" data-spot="measures">
         <p className="cs-label reveal"><span>✦</span> What I’d measure</p>
         <div className="measures">
           {p.metrics.map((m) => (
@@ -121,7 +121,7 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
         <p className="muted small reveal">Concept project — these are the success measures I designed for, not reported results.</p>
       </section>
 
-      <section className="wrap cs-block cs-next-row">
+      <section className="wrap cs-block cs-next-row" data-spot="next">
         <div className="reveal">
           <p className="cs-label"><span>→</span> What I’d do next</p>
           <p className="cs-big">{p.next}</p>

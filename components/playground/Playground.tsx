@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import s from "./playground.module.css";
+import { useCmd } from "@/lib/useCmd";
 
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -19,32 +20,32 @@ function useSeen<T extends Element>(cb: () => void) {
 
 export default function Playground() {
   return (
-    <div className={s.grid}>
-      <Tile title="Constellation" meta="Canvas 2D · stars dodge your cursor · click to connect" dark>
+    <div className={s.grid} data-spot="playground">
+      <Tile demo="constellation" title="Constellation" meta="Canvas 2D · stars dodge your cursor · click to connect" dark>
         <Constellation />
       </Tile>
-      <Tile title="Agent run" meta="From Relay · plan → act → stop at the risky step">
+      <Tile demo="agent" title="Agent run" meta="From Relay · plan → act → stop at the risky step">
         <AgentRun />
       </Tile>
-      <Tile title="Streaming reply" meta="From Tally · thinking shimmer → tokens · tone switch">
+      <Tile demo="stream" title="Streaming reply" meta="From Tally · thinking shimmer → tokens · tone switch">
         <StreamReply />
       </Tile>
-      <Tile title="Hold to confirm" meta="From Kova · 1.2 s hold · works with Space too">
+      <Tile demo="hold" title="Hold to confirm" meta="From Kova · 1.2 s hold · works with Space too">
         <HoldToConfirm />
       </Tile>
-      <Tile title="Day / night" meta="Spring 0.6 s · switches this whole site">
+      <Tile demo="daynight" title="Day / night" meta="Spring 0.6 s · switches this whole site">
         <DayNight />
       </Tile>
-      <Tile title="Tilt card" meta="3D transform · pointer tilt + glare · click to flip">
+      <Tile demo="flip_card" title="Tilt card" meta="3D transform · pointer tilt + glare · click to flip">
         <TiltCard />
       </Tile>
     </div>
   );
 }
 
-function Tile({ title, meta, dark, children }: { title: string; meta: string; dark?: boolean; children: React.ReactNode }) {
+function Tile({ demo, title, meta, dark, children }: { demo: string; title: string; meta: string; dark?: boolean; children: React.ReactNode }) {
   return (
-    <article className={`${s.tile} reveal`}>
+    <article className={`${s.tile} reveal`} data-demo={demo}>
       <div className={`${s.stage} ${dark ? s.dark : ""}`}>{children}</div>
       <div className={s.cap}>
         <strong>{title}</strong>
@@ -60,6 +61,8 @@ function Constellation() {
   const ref = useRef<HTMLCanvasElement>(null);
   const [picked, setPicked] = useState(0);
   const clearRef = useRef(() => {});
+  const drawRef = useRef(() => {});
+  useCmd("pg:cmd", (d) => d === "constellation" && drawRef.current());
 
   useEffect(() => {
     const c = ref.current!;
@@ -134,6 +137,17 @@ function Constellation() {
       setPicked(chosen.length);
     };
     clearRef.current = () => { chosen.length = 0; setPicked(0); };
+    // Tara can draw one: pick the star nearest each point of a little kite shape
+    drawRef.current = () => {
+      chosen.length = 0;
+      const shape = [[0.18, 0.62], [0.32, 0.3], [0.5, 0.48], [0.66, 0.22], [0.82, 0.42], [0.62, 0.72], [0.5, 0.48]];
+      shape.forEach(([sx, sy], k) => setTimeout(() => {
+        let best = 0, bd = Infinity;
+        stars.forEach((st, i) => { const d = Math.hypot(st.x - sx, st.y - sy); if (d < bd) { bd = d; best = i; } });
+        if (chosen[chosen.length - 1] !== best) chosen.push(best);
+        setPicked(chosen.length);
+      }, 220 * k));
+    };
 
     resize();
     const ro = new ResizeObserver(resize); ro.observe(c);
@@ -189,6 +203,7 @@ function AgentRun() {
     });
   }, []);
   const ref = useSeen<HTMLDivElement>(start);
+  useCmd("pg:cmd", (d) => d === "agent" && start());
   const gateAt = STEPS.length - 1;
   const done = step >= STEPS.length;
 
@@ -275,6 +290,7 @@ function StreamReply() {
     }, fast ? 0 : 900);
   }, []);
   const ref = useSeen<HTMLDivElement>(() => play("Friendly"));
+  useCmd("pg:cmd", (d) => d === "stream" && play(tone === "Friendly" ? "Careful" : "Friendly"));
   const live = shown >= 0 && shown < words.length;
 
   return (
@@ -372,6 +388,7 @@ function DayNight() {
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem("theme", next); } catch {}
   };
+  useCmd("pg:cmd", (d) => d === "daynight" && flip());
   return (
     <div className={s.dn}>
       <button role="switch" aria-checked={night} aria-label="Night mode" className={`${s.sw} ${night ? s.night : ""}`} onClick={flip}>
@@ -389,6 +406,7 @@ function DayNight() {
 function TiltCard() {
   const ref = useRef<HTMLButtonElement>(null);
   const [flipped, setFlipped] = useState(false);
+  useCmd("pg:cmd", (d) => d === "flip_card" && setFlipped((v) => !v));
   const set = (rx: number, ry: number, gx: number, gy: number, on: boolean) => {
     const el = ref.current!;
     el.style.setProperty("--rx", `${rx}deg`);

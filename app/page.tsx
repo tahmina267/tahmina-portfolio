@@ -131,7 +131,7 @@ export default function Home() {
             <h3 className="h2 reveal">Five hats, one person, fewer handoffs.</h3>
             <p className="muted reveal">Hover a card — each one shows real work from a case study.</p>
           </div>
-          <div className="hats">
+          <div className="hats" data-spot="hats">
             {disciplines.map((d, i) => (
               <article key={d.name} className="hat reveal" style={{ ["--c" as string]: d.color, ["--t" as string]: d.tint }}>
                 <div className="hat-vis"><HatVisual d={d.name} /></div>
@@ -167,7 +167,7 @@ export default function Home() {
           </div>
           <Image src="/art/falling.webp" alt="Illustration of a girl falling through stars" width={520} height={520} className="float-slow reveal" />
         </div>
-        <ol className="wrap steps">
+        <ol className="wrap steps" data-spot="steps">
           {process.map((s) => {
             const d = disciplines.find((x) => x.name === s.d)!;
             return (
@@ -225,7 +225,7 @@ export default function Home() {
           </div>
           <Image src="/art/sky.webp" alt="Illustration of a girl painting the night sky" width={720} height={720} className="reveal" />
         </div>
-        <div className="wrap map-card reveal">
+        <div className="wrap map-card reveal" data-spot="map">
           <div>
             <p className="eyebrow">Where I am</p>
             <h3>Dhaka, Bangladesh</h3>
