@@ -116,7 +116,7 @@ export default function Home() {
             <p className="eyebrow reveal">About</p>
             <h2 className="display-s reveal">Designer by training, <em className="c-ultra">engineer</em> by habit, <em className="c-ultra">QA</em> by paranoia.</h2>
             <p className="lede reveal">
-              I graduated in 2025. I work the whole stack of a feature: the research, the screens, the prompt, the React and the test plan, so fewer things get lost between handoffs.
+              I don&apos;t believe in silos. I take features from raw research all the way to production-ready React and tests, mapping out the UI and tuning the AI behavior along the way.
             </p>
             <div className="row gap reveal">
               <a className="btn btn-dark" href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a>
