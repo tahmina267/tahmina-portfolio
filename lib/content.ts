@@ -12,7 +12,7 @@ export const profile = {
   linkedin: "https://bd.linkedin.com/in/tahmina-sultana-188051247",
   availability: "Open to product design and design-engineering roles (remote or Dhaka)",
   intro:
-    "A 2025 graduate who works across the whole life of a feature: the research, the interface, how the AI behaves, the React, and the test plan.",
+    "End-to-end product engineer. I bridge the gap between human needs and machine intelligence, shaping everything from upfront research and UI design to AI behavior, React implementation, and comprehensive testing.",
 };
 
 export type Discipline = "Product" | "UI/UX" | "Frontend" | "QA" | "AI-native";
