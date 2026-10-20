@@ -1,4 +1,4 @@
-# Tahmina Sultana — Portfolio
+# Tahmina Sultana · Portfolio
 
 Product designer · UI/UX · Frontend · QA · AI-native.
 Next.js 16 (App Router) site with eight case studies and **Tara**, a small star mascot that answers questions about my work.
@@ -15,7 +15,7 @@ npm run check                # guardrail self-check
 ## Tara, the assistant
 
 - **Model:** GLM‑5.3 (falls back to GLM‑5.3‑flash) via the Z.ai coding-plan endpoint. The key lives only on the server (`GLM_API_KEY`).
-- **Tool calling, streamed:** `app/api/chat/route.ts` streams NDJSON events — text deltas, steps and UI actions. Data tools (`get_project`) run on the server; UI tools (navigate, project card, contact button, skills chart, map, theme, mascot mood, effects) are validated against an allowlist in `lib/guard.ts` before reaching the browser.
+- **Tool calling, streamed:** `app/api/chat/route.ts` streams NDJSON events: text deltas, steps and UI actions. Data tools (`get_project`) run on the server; UI tools (navigate, project card, contact button, skills chart, map, theme, mascot mood, effects) are validated against an allowlist in `lib/guard.ts` before reaching the browser.
 - **Smarter answers:** page-aware (knows which case study you're reading), a `search_portfolio` tool over every case study, follow-up suggestions after each answer, a narrated guided tour, a Stop button, and ⌘K to open.
 - **Key safety:** the GLM client lives in `lib/glm.ts` behind `import "server-only"` (the build fails if it is imported by client code), and `npm run build` runs `scripts/check-bundle.mjs`, which fails the build if the key or anything shaped like it appears in browser-facing output. Streamed text is also redacted for key-shaped strings.
 - **Guardrails:** same-origin requests only, per-IP rate limit (8/min, 80/day) and one answer at a time per visitor, 600-char input cap, last 10 turns only, a jailbreak pre-filter, a system prompt grounded only in `lib/content.ts`, safe Markdown rendering (no raw HTML, links only to this site or my own profiles), 45 s timeout.

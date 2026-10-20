@@ -69,7 +69,7 @@ export default function Home() {
               {p.slug === "kova" ? (
                 <div className="stage reveal">
                   <Browser url="app.kova.money" className="live"><KovaDashboard compact /></Browser>
-                  <span className="live-tag">● Live prototype — try the chart</span>
+                  <span className="live-tag">● Live prototype · try the chart</span>
                 </div>
               ) : (
                 <Link href={`/work/${p.slug}`} className="stage reveal" aria-label={`Open ${p.name} case study`}>
@@ -80,7 +80,7 @@ export default function Home() {
                 </Link>
               )}
               <div className="chapter-copy reveal">
-                <p className="eyebrow">{String(i + 1).padStart(2, "0")} — {p.sector} · {p.year}</p>
+                <p className="eyebrow">{String(i + 1).padStart(2, "0")} · {p.sector} · {p.year}</p>
                 <h3 className="h3">{p.name}</h3>
                 <p className="tagline">{p.tagline}</p>
                 <p className="body">{p.summary}</p>
@@ -116,7 +116,7 @@ export default function Home() {
             <p className="eyebrow reveal">About</p>
             <h2 className="display-s reveal">Designer by training, <em className="c-ultra">engineer</em> by habit, <em className="c-ultra">QA</em> by paranoia.</h2>
             <p className="lede reveal">
-              I graduated from North South University in 2025. I work the whole stack of a feature — the research, the screens, the prompt, the React and the test plan — so fewer things get lost between handoffs.
+              I graduated in 2025. I work the whole stack of a feature: the research, the screens, the prompt, the React and the test plan, so fewer things get lost between handoffs.
             </p>
             <div className="row gap reveal">
               <a className="btn btn-dark" href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a>
@@ -129,7 +129,7 @@ export default function Home() {
         <div className="wrap">
           <div className="section-head small">
             <h3 className="h2 reveal">Five hats, one person, fewer handoffs.</h3>
-            <p className="muted reveal">Hover a card — each one shows real work from a case study.</p>
+            <p className="muted reveal">Hover a card. Each one shows real work from a case study.</p>
           </div>
           <div className="hats" data-spot="hats">
             {disciplines.map((d, i) => (
@@ -187,7 +187,7 @@ export default function Home() {
           <div>
             <p className="eyebrow reveal">Playground</p>
             <h2 className="h2 reveal">Motion, mischief and things nobody asked for.</h2>
-            <p className="muted reveal play-sub">Six small components from the case studies — all of them work. Go on, poke them.</p>
+            <p className="muted reveal play-sub">Six small components from the case studies, and all of them work. Go on, poke them.</p>
           </div>
         </div>
         <div className="wrap">
@@ -199,7 +199,7 @@ export default function Home() {
           <div className="critter dark reveal"><Image src="/art/cat.webp" alt="Cat playing drums" width={300} height={380} /><div><h4>Momo</h4><p>Head of QA. Drums on the keyboard during reviews.</p></div></div>
         </div>
         <div className="gallery">
-          {["g04", "g07", "g10", "g11", "headphones", "g13", "g14", "g09"].map((g) => (
+          {["g04", "g07", "g10", "g11", "headphones"].map((g) => (
             <Image key={g} src={`/art/${g}.webp`} alt="" width={320} height={320} className="reveal" />
           ))}
         </div>
@@ -229,7 +229,7 @@ export default function Home() {
           <div>
             <p className="eyebrow">Where I am</p>
             <h3>Dhaka, Bangladesh</h3>
-            <p>Studied at North South University, Bashundhara — graduated 2025. Happy to work remotely across time zones, or on-site in Dhaka.</p>
+            <p>Studied at North South University, Bashundhara, and graduated in 2025. Happy to work remotely across time zones, or on-site in Dhaka.</p>
             <AskTara className="btn btn-line btn-sm" prompt="Which time zones can Tahmina work with, and where is she based?">Ask Tara about working together</AskTara>
           </div>
           <iframe

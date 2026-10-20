@@ -15,7 +15,7 @@ export const dynamicParams = false;
 export async function generateMetadata({ params }: PageProps<"/work/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const p = projects.find((x) => x.slug === slug);
-  return p ? { title: `${p.name} — ${p.tagline} · ${profile.name}`, description: p.summary } : {};
+  return p ? { title: `${p.name}: ${p.tagline} · ${profile.name}`, description: p.summary } : {};
 }
 
 const RES = { pass: "✓", warn: "!", fail: "✕" } as const;
@@ -118,7 +118,7 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
             <div key={m.value} className="measure reveal"><strong>{m.value}</strong><span>{m.label}</span></div>
           ))}
         </div>
-        <p className="muted small reveal">Concept project — these are the success measures I designed for, not reported results.</p>
+        <p className="muted small reveal">Concept project. These are the success measures I designed for, not reported results.</p>
       </section>
 
       <section className="wrap cs-block cs-next-row" data-spot="next">

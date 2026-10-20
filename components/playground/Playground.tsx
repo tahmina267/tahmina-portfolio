@@ -167,7 +167,7 @@ function Constellation() {
     <>
       <canvas ref={ref} className={s.canvas} aria-label="Interactive starfield. Click stars to draw a constellation." />
       <div className={s.constHud}>
-        <span>{picked === 0 ? "Click a star to begin" : picked < 5 ? `${picked} star${picked > 1 ? "s" : ""} — keep going` : `✦ A ${picked}-star constellation!`}</span>
+        <span>{picked === 0 ? "Click a star to begin" : picked < 5 ? `${picked} star${picked > 1 ? "s" : ""}, keep going` : `✦ A ${picked}-star constellation!`}</span>
         {picked > 0 && <button onClick={() => clearRef.current()}>Clear</button>}
       </div>
     </>
@@ -249,7 +249,7 @@ function AgentRun() {
 /* ───────────── 3. Streaming reply ───────────── */
 
 const REPLIES = {
-  Friendly: "Yes — **Lisbon fits** if you book by the 14th. You’ll still have **£486** before payday, and pausing one unused subscription gives you a cushion. Want me to set a reminder? ✈️",
+  Friendly: "Yes, **Lisbon fits** if you book by the 14th. You’ll still have **£486** before payday, and pausing one unused subscription gives you a cushion. Want me to set a reminder? ✈️",
   Concise: "**Yes.** £486 left before payday. Book by the 14th.",
   Careful: "**Probably**, with one risk: the 17th dips close to your £300 floor. Book after the 12th’s freelance payment lands.",
 } as const;
@@ -367,7 +367,7 @@ function HoldToConfirm() {
         <span className={s.holdLabel}>{state === "done" ? "Sent ✓" : state === "holding" ? `Sending… ${Math.round(p * 100)}%` : "Hold to send"}</span>
         {state === "done" && <span className={s.burst} aria-hidden>{Array.from({ length: 12 }, (_, i) => <i key={i} style={{ ["--a" as string]: `${i * 30}deg` }} />)}</span>}
       </button>
-      <small className={s.holdHint} aria-live="polite">{state === "early" ? "Keep holding — this is the safe way to move money." : state === "done" ? "Recall available for 10 minutes." : "Press and hold"}</small>
+      <small className={s.holdHint} aria-live="polite">{state === "early" ? "Keep holding. This is the safe way to move money." : state === "done" ? "Recall available for 10 minutes." : "Press and hold"}</small>
     </div>
   );
 }
@@ -396,7 +396,7 @@ function DayNight() {
         <span className={s.tiny}><i /><i /><i /><i /><i /></span>
         <span className={s.knob}><span className={s.mask} /><i /><i /><i /></span>
       </button>
-      <small>{night ? "Night sky — stars are out" : "Daylight — cream paper"}</small>
+      <small>{night ? "Night sky · stars are out" : "Daylight · cream paper"}</small>
     </div>
   );
 }

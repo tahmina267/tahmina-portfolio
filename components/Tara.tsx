@@ -11,9 +11,9 @@ type Msg = { role: "user" | "assistant"; content: string; actions?: Action[]; st
 
 const SUGGEST = ["Why should I hire Tahmina?", "Give me the tour ✦", "Show me her best AI project", "Has she used Playwright?", "Make it night ✦", "How can I contact her?"];
 const TOUR = [
-  ["work", "Eight case studies — each one from first sketch to shipped code."],
+  ["work", "Eight case studies, each one from first sketch to shipped code."],
   ["about", "Five hats: product, UI/UX, frontend, QA and AI-native."],
-  ["process", "Her process — frame, design the behaviour, build, then try to break it."],
+  ["process", "Her process: frame, design the behaviour, build, then try to break it."],
   ["playground", "The fun bit: motion experiments and the studio critters."],
   ["contact", "And here’s how to reach her. WhatsApp is quickest! ✦"],
 ] as const;
@@ -21,7 +21,7 @@ type Tip = { text: string; prompt?: string };
 const STORE = "tara-chat";
 const GREETING: Msg = {
   role: "assistant",
-  content: "Hi, I’m Tara ✦ — Tahmina’s little helper. Ask me about her work, skills or how to reach her. I can also move things around the page!",
+  content: "Hi, I’m Tara ✦, Tahmina’s little helper. Ask me about her work, skills or how to reach her. I can also move things around the page!",
 };
 
 export default function Tara() {
@@ -258,7 +258,7 @@ export default function Tara() {
         }
       }
     } catch {
-      if (ctrl.signal.aborted) patch((m) => ({ ...m, content: (m.content ? m.content + " " : "") + "_— stopped._" }));
+      if (ctrl.signal.aborted) patch((m) => ({ ...m, content: (m.content ? m.content + " " : "") + "_(stopped)_" }));
       else patch((m) => ({ ...m, content: m.content || "I couldn’t reach my star brain. Check your connection, or WhatsApp Tahmina directly.", actions: m.content ? m.actions : [{ type: "contact", channel: "whatsapp" }] }));
     } finally {
       abortRef.current = null;
@@ -445,7 +445,7 @@ function CompareCard({ slugs }: { slugs: string[] }) {
     ["Sector", (p) => p.sector],
     ["Year", (p) => p.year],
     ["Hats", (p) => <span className="dots-mini">{p.disciplines.map((d) => <i key={d} title={d} style={{ background: disciplines.find((x) => x.name === d)?.color }} />)}</span>],
-    ["AI rules", (p) => (p.ai ? `${p.ai.prompt.length - 2} rules` : "—")],
+    ["AI rules", (p) => (p.ai ? `${p.ai.prompt.length - 2} rules` : "None")],
     ["QA cases", (p) => `${p.qa.matrix.length} × ${p.qa.cols.length} matrix`],
     ["Big call", (p) => p.decisions[0].title],
   ];
@@ -475,7 +475,7 @@ function FitCard({ role, items }: { role: string; items: { req: string; evidence
         {items.map((i, k) => (
           <li key={k} className={`lv-${i.level}`} style={{ animationDelay: `${k * 90}ms` }}>
             <b>{i.req}</b>
-            <span>{i.evidence || (i.level === "gap" ? "Not shown in the portfolio — worth asking her." : "")}</span>
+            <span>{i.evidence || (i.level === "gap" ? "Not shown in the portfolio. Worth asking her." : "")}</span>
             <em>{i.level}{i.project && <> · <Link href={`/work/${i.project}`}>{projects.find((p) => p.slug === i.project)?.name} →</Link></>}</em>
           </li>
         ))}

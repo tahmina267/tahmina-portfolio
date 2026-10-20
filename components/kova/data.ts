@@ -88,7 +88,7 @@ export const CASHFLOW = [
 
 export const APPROVALS = [
   { title: "October payroll", meta: "42 people · 6 countries", amount: "$412,600.00", flag: "Priya’s bank details changed 2 days ago", tone: "review" as const },
-  { title: "Figma — annual seats", meta: "Vendor · due Tue", amount: "$18,240.00", tone: "ok" as const },
+  { title: "Figma · annual seats", meta: "Vendor · due Tue", amount: "$18,240.00", tone: "ok" as const },
   { title: "Convert €200,000 → USD", meta: "Rate locked 14:05 · 1.0871", amount: "$217,420.00", tone: "ok" as const },
 ];
 

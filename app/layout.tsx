@@ -12,7 +12,7 @@ const serif = Instrument_Serif({ variable: "--font-serif", subsets: ["latin"], w
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
-  title: `${profile.name} — Product designer, UI/UX, frontend, QA, AI-native`,
+  title: `${profile.name} · Product designer, UI/UX, frontend, QA, AI-native`,
   description: profile.intro,
   openGraph: { title: profile.name, description: profile.intro, images: ["/art/hero.webp"] },
 };

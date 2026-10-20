@@ -37,7 +37,7 @@ export default function HatVisual({ d }: { d: Discipline }) {
   return (
     <div className="hv hv-ai">
       <span className="hv-q">“Book the cheapest one”</span>
-      <span className="hv-a">Two are within 10% — want me to ask before picking?</span>
+      <span className="hv-a">Two are within 10%. Want me to ask before picking?</span>
       <span className="hv-spark">✦</span>
     </div>
   );

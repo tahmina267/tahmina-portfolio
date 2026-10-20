@@ -59,7 +59,7 @@ export function isBlocked(text: string) {
   return BLOCK.some((r) => r.test(text));
 }
 
-// The only things the model can make the page do. Everything is re-validated here — the model never supplies URLs.
+// The only things the model can make the page do. Everything is re-validated here; the model never supplies URLs.
 export const SECTIONS = ["top", "work", "about", "process", "playground", "contact"] as const;
 export const MOODS = ["wave", "dance", "think", "love", "sleep", "surprised"] as const;
 export const EFFECTS = ["stars", "confetti", "shooting-star"] as const;
@@ -194,7 +194,7 @@ export function cleanPage(page: unknown): string {
 const DOCS = [
   ...projects.flatMap((p) => [
     { src: p.name, text: `${p.name}: ${p.summary} ${p.problem}` },
-    ...p.decisions.map((d) => ({ src: p.name, text: `${d.title} — ${d.body}` })),
+    ...p.decisions.map((d) => ({ src: p.name, text: `${d.title}: ${d.body}` })),
     ...(p.ai ? [{ src: p.name, text: `AI rules: ${p.ai.prompt.slice(2).join(" ")}` }] : []),
     { src: p.name, text: `QA: ${p.qa.matrix.map((m) => m.case).join("; ")}. Edge cases: ${p.qa.edgeCases.join("; ")}` },
     { src: p.name, text: `Code (${p.code.file}): ${p.code.lines.join(" ")}` },
