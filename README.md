@@ -1,7 +1,7 @@
 # Tahmina Sultana · Portfolio
 
 Product designer · UI/UX · Frontend · QA · AI-native.
-Next.js 16 (App Router) site with eight case studies and **Tara**, a small star mascot that answers questions about my work.
+Next.js 16 (App Router) site with nine case studies and **Tara**, a small star mascot that answers questions about my work.
 
 ## Run locally
 

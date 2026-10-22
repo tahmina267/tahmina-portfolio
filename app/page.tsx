@@ -59,7 +59,7 @@ export default function Home() {
         <div className="wrap section-head">
           <div>
             <p className="eyebrow reveal">Selected work · 2024 – 2026</p>
-            <h2 className="h2 reveal">Eight products, each from first sketch to shipped code.</h2>
+            <h2 className="h2 reveal">Nine products, each from first sketch to shipped code.</h2>
           </div>
           <Image src="/art/g03.webp" alt="" width={240} height={240} className="head-art reveal" />
         </div>

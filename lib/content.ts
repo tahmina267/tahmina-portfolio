@@ -10,7 +10,6 @@ export const profile = {
   phoneHref: "tel:+8801750793849",
   whatsappHref: "https://wa.me/8801750793849",
   linkedin: "https://bd.linkedin.com/in/tahmina-sultana-188051247",
-  lakeside: "https://lakeside-portfolio.vercel.app",
   availability: "Open to product design and design-engineering roles (remote or Dhaka)",
   intro:
     "End-to-end product engineer. I bridge the gap between human needs and machine intelligence, shaping everything from upfront research and UI design to AI behavior, React implementation, and comprehensive testing.",
@@ -54,6 +53,7 @@ export type Project = {
   code: { file: string; lines: string[] };
   metrics: { value: string; label: string }[];
   next: string;
+  live?: string;
 };
 
 export const projects: Project[] = [
@@ -229,6 +229,28 @@ export const projects: Project[] = [
     code: { file: "Bubble.swift", lines: ["struct Bubble: View {", "  let message: Message", "  var body: some View {", "    Text(message.text).font(.body)", "      .padding(.init(top: 7, leading: 12, bottom: 7, trailing: 12))", "      .background(message.isOutgoing ? .outgoing : .incoming)", "      .clipShape(BubbleShape(tail: message.isLastInGroup))", "  }", "}"] },
     metrics: [{ value: "Components", label: "with every state" }, { value: "Screens", label: "assembled only from parts" }, { value: "Pixel match", label: "against the shipping app" }],
     next: "Stretch the same system to the three-column macOS client.",
+  },
+  {
+    slug: "lakeside", name: "Lakeside", tagline: "A portfolio you can walk into.", sector: "Interactive 3D · WebGL", year: "2026", tint: "#CFE6E2",
+    art: "g13", shot: "lakeside", phones: [], live: "https://lakeside-portfolio.vercel.app",
+    summary: "A mountain lake built in Three.js: Gerstner waves, a spruce forest in a shared wind field, a lake house with a working door and a physics-driven fire, and a day/night switch. Every section is a place you travel to.",
+    disciplines: ["UI/UX", "Frontend", "QA"], role: "Self-initiated · design + Three.js",
+    problem: "Portfolio sites all scroll the same way. I wanted navigation that feels like moving through a place, without losing the basics: readable text, fast loading and a frame rate that holds on a laptop.",
+    decisions: [
+      { title: "One world, two moods", body: "Day is a soft teal sky with cumulus and blue-teal haze; night swaps in stars, a textured moon, lantern light and fireflies. The panels change palette with the sky.", img: "lakeside" },
+      { title: "Night is lit by the scene itself", body: "Lanterns, the cabin window and the fire are the light sources, and the lake reflects them. Nothing is painted on.", img: "lakeside-night" },
+      { title: "Contact lives inside the house", body: "Clicking Contact walks you across the porch, swings the door open and steps into a room lit by a particle fire with buoyancy and cooling. The card appears by the fire.", img: "lakeside-cabin" },
+      { title: "Cards that belong to the forest", body: "Daylight project cards use a misty-forest palette (pine to moss, cream text, one gold accent) so they read clearly without fighting the scene.", img: "lakeside-work" },
+    ],
+    qa: { cols: ["Day", "Night", "Inside", "Low frame rate"], matrix: [
+      { case: "Holds ~60 fps on a laptop GPU", result: ["pass", "pass", "pass", "warn"] },
+      { case: "Text readable over the scene", result: ["pass", "pass", "pass", "pass"] },
+      { case: "Markers visible from the home view", result: ["pass", "pass", "pass", "pass"] },
+      { case: "Walk in and out of the house", result: ["pass", "pass", "pass", "pass"] },
+    ], edgeCases: ["Resolution drops a step when the frame rate dips", "Reflections refresh every other frame", "Shadows update only when something moves", "The fire only simulates near the house"] },
+    code: { file: "world/waves.js", lines: ["// one wave field drives the GPU surface and the boat's buoyancy", "function waterHeight(x, z, t) {", "  const g = waveGust() * shoreDamp(x, z)", "  let y = 0", "  for (const [dx, dz, L, A] of WAVES) {", "    const k = (Math.PI * 2) / L, c = Math.sqrt(9.8 / k)   // deep-water dispersion", "    y += A * g * Math.sin(k * (dx * x + dz * z - c * t))", "  }", "  return y", "}"] },
+    metrics: [{ value: "Frame rate", label: "target: 60 fps on a laptop" }, { value: "Time to the contact card", label: "under two seconds" }, { value: "Assets downloaded", label: "kept tiny: almost everything is generated in code" }],
+    next: "Seasons: snow on the peaks and a frozen lake in winter, autumn colour in the forest.",
   },
 ];
 

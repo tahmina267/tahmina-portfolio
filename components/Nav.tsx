@@ -36,7 +36,6 @@ export default function Nav() {
           {LINKS.map(([l, h]) => (
             <Link key={l} href={h} onClick={() => setOpen(false)}>{l}</Link>
           ))}
-          <a href={profile.lakeside} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}>Lakeside 3D ↗</a>
         </nav>
         <div className="nav-cta">
           <span className="pill pill-ok"><i /> Open to work</span>
