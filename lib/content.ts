@@ -243,12 +243,12 @@ export const projects: Project[] = [
       { title: "Contact lives inside the house", body: "Clicking Contact walks you across the porch, swings the door open and steps into a room lit by a particle fire with buoyancy and cooling. The card appears by the fire.", img: "lakeside-contact-v2" },
       { title: "Cards that belong to the forest", body: "Daylight project cards use a misty-forest palette (pine to moss, cream text, one gold accent) so they read clearly without fighting the scene.", img: "lakeside-work-v2" },
     ],
-    qa: { cols: ["Day", "Night", "Inside", "Low frame rate"], matrix: [
-      { case: "Holds ~60 fps on a laptop GPU", result: ["pass", "pass", "pass", "warn"] },
+    qa: { cols: ["Desktop", "Phone", "Tablet", "Landscape"], matrix: [
+      { case: "Holds ~60 fps", result: ["pass", "pass", "pass", "pass"] },
       { case: "Text readable over the scene", result: ["pass", "pass", "pass", "pass"] },
-      { case: "Markers visible from the home view", result: ["pass", "pass", "pass", "pass"] },
+      { case: "Day and night switch", result: ["pass", "pass", "pass", "pass"] },
       { case: "Walk in and out of the house", result: ["pass", "pass", "pass", "pass"] },
-    ], edgeCases: ["Resolution drops a step when the frame rate dips", "Reflections refresh every other frame", "Shadows update only when something moves", "The fire only simulates near the house"] },
+    ], edgeCases: ["Wider field of view on narrow screens", "Finger-sized targets and safe areas on touch", "Resolution steps down if the frame rate dips", "Reflections, shadows and the fire only update when needed"] },
     code: { file: "world/waves.js", lines: ["// one wave field drives the GPU surface and the boat's buoyancy", "function waterHeight(x, z, t) {", "  const g = waveGust() * shoreDamp(x, z)", "  let y = 0", "  for (const [dx, dz, L, A] of WAVES) {", "    const k = (Math.PI * 2) / L, c = Math.sqrt(9.8 / k)   // deep-water dispersion", "    y += A * g * Math.sin(k * (dx * x + dz * z - c * t))", "  }", "  return y", "}"] },
     metrics: [{ value: "Frame rate", label: "target: 60 fps on a laptop" }, { value: "Time to the contact card", label: "under two seconds" }, { value: "Assets downloaded", label: "kept tiny: almost everything is generated in code" }],
     next: "Seasons: snow on the peaks and a frozen lake in winter, autumn colour in the forest.",
