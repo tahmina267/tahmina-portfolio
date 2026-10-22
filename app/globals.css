@@ -691,3 +691,5 @@ ul, ol { list-style: none; }
 
 /* live-site button on a case study: sits clear of the discipline chips */
 .cs-live{margin:2rem 0 0}
+/* four measures sit in one row on wide screens */
+@media (min-width: 981px) { .measures.four { grid-template-columns: repeat(4, 1fr); } }

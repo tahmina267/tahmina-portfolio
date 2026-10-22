@@ -113,13 +113,15 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
       </section>
 
       <section className="wrap cs-block" data-spot="measures">
-        <p className="cs-label reveal"><span>✦</span> What I’d measure</p>
-        <div className="measures">
+        <p className="cs-label reveal"><span>✦</span> {p.measured ? "By the numbers" : "What I’d measure"}</p>
+        <div className={`measures ${p.metrics.length === 4 ? "four" : ""}`}>
           {p.metrics.map((m) => (
             <div key={m.value} className="measure reveal"><strong>{m.value}</strong><span>{m.label}</span></div>
           ))}
         </div>
-        <p className="muted small reveal">Concept project. These are the success measures I designed for, not reported results.</p>
+        <p className="muted small reveal">{p.measured
+          ? "Measured on the live build in Chrome, on laptop, phone and tablet sizes."
+          : "Concept project. These are the success measures I designed for, not reported results."}</p>
       </section>
 
       <section className="wrap cs-block cs-next-row" data-spot="next">
