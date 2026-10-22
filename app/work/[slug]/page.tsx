@@ -40,7 +40,7 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
             <p className="cs-tagline reveal">{p.tagline}</p>
             <p className="lede reveal">{p.summary}</p>
             <ul className="chips reveal">{p.disciplines.map((d) => <li key={d} data-d={d}>{d}</li>)}</ul>
-            {p.live && <a className="btn btn-dark arrow reveal" href={p.live} target="_blank" rel="noreferrer">Visit the live site <span>↗</span></a>}
+            {p.live && <p className="cs-live reveal"><a className="btn btn-dark arrow" href={p.live} target="_blank" rel="noreferrer">Visit the live site <span>↗</span></a></p>}
           </div>
           <Image src={`/art/${p.art}.webp`} alt="" width={460} height={460} className="cs-art float-slow" priority />
         </div>

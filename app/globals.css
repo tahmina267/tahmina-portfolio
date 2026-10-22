@@ -688,3 +688,6 @@ ul, ol { list-style: none; }
 .draft-row { display: flex; gap: 8px; align-items: center; }
 .draft-row button { font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 99px; border: 1px solid var(--line); }
 .chat.is-open.peek { transform: translateX(calc(100% + 40px)); opacity: 0.0; pointer-events: none; }
+
+/* live-site button on a case study: sits clear of the discipline chips */
+.cs-live{margin:2rem 0 0}
