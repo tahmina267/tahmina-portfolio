@@ -10,6 +10,7 @@ export const profile = {
   phoneHref: "tel:+8801750793849",
   whatsappHref: "https://wa.me/8801750793849",
   linkedin: "https://bd.linkedin.com/in/tahmina-sultana-188051247",
+  lakeside: "https://lakeside-portfolio.vercel.app",
   availability: "Open to product design and design-engineering roles (remote or Dhaka)",
   intro:
     "End-to-end product engineer. I bridge the gap between human needs and machine intelligence, shaping everything from upfront research and UI design to AI behavior, React implementation, and comprehensive testing.",
