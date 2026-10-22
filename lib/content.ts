@@ -233,16 +233,16 @@ export const projects: Project[] = [
   },
   {
     slug: "lakeside", name: "Lakeside", tagline: "A portfolio you can walk into.", sector: "Interactive 3D · WebGL", year: "2026", tint: "#CFE6E2",
-    art: "g13", shot: "lakeside-day-v2", phones: [], live: "https://lakeside-portfolio.vercel.app", measured: true,
+    art: "g13", shot: "lakeside-day-v3", phones: [], live: "https://lakeside-portfolio.vercel.app", measured: true,
     summary: "A mountain lake built in Three.js: Gerstner waves, a spruce forest in a shared wind field, a lake house with a working door and a physics-driven fire, and a day/night switch. Every section is a place you travel to.",
     disciplines: ["UI/UX", "Frontend", "QA"], role: "Self-initiated · design + Three.js",
     problem: "Portfolio sites all scroll the same way. I wanted navigation that feels like moving through a place, without losing the basics: readable text, fast loading and a frame rate that holds on a laptop.",
     decisions: [
-      { title: "One world, two moods", body: "Day is a soft teal sky with cumulus and blue-teal haze; night swaps in stars, a textured moon, lantern light and fireflies. The panels change palette with the sky.", img: "lakeside-day-v2" },
-      { title: "Night is lit by the scene itself", body: "Lanterns, the cabin window and the fire are the light sources, and the lake reflects them. Nothing is painted on.", img: "lakeside-night-v2" },
-      { title: "About, out on the dock", body: "About flies you to the end of the dock. The panel is deep lake-teal glass with a copper accent, dark enough to read over the bright water and sky.", img: "lakeside-about-v2" },
-      { title: "Contact lives inside the house", body: "Clicking Contact walks you across the porch, swings the door open and steps into a room lit by a particle fire with buoyancy and cooling. The card appears by the fire.", img: "lakeside-contact-v2" },
-      { title: "Cards that belong to the forest", body: "Daylight project cards use a misty-forest palette (pine to moss, cream text, one gold accent) so they read clearly without fighting the scene.", img: "lakeside-work-v2" },
+      { title: "One world, two moods", body: "Day is a soft teal sky with cumulus and blue-teal haze; night swaps in stars, a textured moon, lantern light and fireflies. The panels change palette with the sky.", img: "lakeside-day-v3" },
+      { title: "Night is lit by the scene itself", body: "Lanterns, the cabin window and the fire are the light sources, and the lake reflects them. Nothing is painted on.", img: "lakeside-night-v3" },
+      { title: "About, out on the dock", body: "About flies you to the end of the dock. The panel is deep lake-teal glass with a copper accent, dark enough to read over the bright water and sky.", img: "lakeside-about-v3" },
+      { title: "Contact lives inside the house", body: "Clicking Contact walks you across the porch, swings the door open and steps into a room lit by a particle fire with buoyancy and cooling. The card appears by the fire.", img: "lakeside-contact-v3" },
+      { title: "Cards that belong to the forest", body: "Daylight project cards use a misty-forest palette (pine to moss, cream text, one gold accent) so they read clearly without fighting the scene.", img: "lakeside-work-v3" },
     ],
     qa: { cols: ["Desktop", "Phone", "Tablet", "Landscape"], matrix: [
       { case: "Holds ~60 fps", result: ["pass", "pass", "pass", "pass"] },
