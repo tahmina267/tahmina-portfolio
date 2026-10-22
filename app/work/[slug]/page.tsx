@@ -55,7 +55,7 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
         {p.slug === "kova" ? (
           <Browser url="app.kova.money" className="live"><KovaDashboard /></Browser>
         ) : (
-          <Browser src={`/work/${p.shot}.webp`} url={`${p.slug}.app`} />
+          <Browser src={`/work/${p.shot}.webp`} url={`${p.slug}.app`} sizes="(max-width: 900px) 92vw, 1200px" />
         )}
         {p.phones.length > 0 && (
           <div className="cs-phones">{p.phones.map((ph, j) => <Phone key={ph} src={`/work/${ph}.webp`} className={`cs-phone c${j}`} />)}</div>
