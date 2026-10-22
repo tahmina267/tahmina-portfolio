@@ -239,6 +239,7 @@ export const projects: Project[] = [
     decisions: [
       { title: "One world, two moods", body: "Day is a soft teal sky with cumulus and blue-teal haze; night swaps in stars, a textured moon, lantern light and fireflies. The panels change palette with the sky.", img: "lakeside-day-v2" },
       { title: "Night is lit by the scene itself", body: "Lanterns, the cabin window and the fire are the light sources, and the lake reflects them. Nothing is painted on.", img: "lakeside-night-v2" },
+      { title: "About, out on the dock", body: "About flies you to the end of the dock. The panel is deep lake-teal glass with a copper accent, dark enough to read over the bright water and sky.", img: "lakeside-about-v2" },
       { title: "Contact lives inside the house", body: "Clicking Contact walks you across the porch, swings the door open and steps into a room lit by a particle fire with buoyancy and cooling. The card appears by the fire.", img: "lakeside-contact-v2" },
       { title: "Cards that belong to the forest", body: "Daylight project cards use a misty-forest palette (pine to moss, cream text, one gold accent) so they read clearly without fighting the scene.", img: "lakeside-work-v2" },
     ],
